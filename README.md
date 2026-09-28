@@ -18,22 +18,101 @@ A standalone, intentionally vulnerable web application and attack-surface-manage
 ## Quick Start
 
 ```bash
-# 1. Generate TLS certificates
-./scripts/generate-certs.sh
+# Option A — one-command setup (self-signed cert generated automatically)
+./scripts/run.sh
 
-# 2. Add subdomains to /etc/hosts
-sudo ./scripts/setup-hosts.sh
-
-# 3. Copy environment file
-cp .env.example .env
-
-# 4. Start everything
-docker compose up -d --build
-
-# 5. Wait ~60s for all services to initialize, then access:
-#    https://app.krizznaa.tech   (frontend)
-#    https://api.krizznaa.tech   (backend API)
+# Option B — production TLS via Let's Encrypt (run before run.sh)
+bash scripts/certbot-issue.sh   # issues wildcard cert covering all 19 subdomains
+./scripts/run.sh
 ```
+
+After startup, services are available at:
+
+| URL | Service |
+|-----|---------|
+| `https://krizznaa.tech` | Landing page |
+| `https://app.krizznaa.tech` | Frontend (React) |
+| `https://api.krizznaa.tech` | Backend API |
+| `https://grafana.krizznaa.tech` | Real Grafana |
+| `https://jenkins.krizznaa.tech` | Real Jenkins |
+
+See [Subdomain Map](#subdomain-map) for all 19 subdomains.
+
+## TLS Certificates
+
+Each of the 19 subdomains has its own individual certificate. This means every domain gets a dedicated `letsencrypt/live/<domain>/` directory rather than a shared wildcard.
+
+### Local / development (self-signed)
+
+`run.sh` automatically generates a self-signed cert if no Let's Encrypt cert is found:
+
+```bash
+./scripts/run.sh
+```
+
+To trust the CA in your browser on macOS:
+```bash
+sudo security add-trusted-cert -d -r trustRoot \
+  -k /Library/Keychains/System.keychain proxy/certs/ca.crt
+```
+
+Or generate standalone dev certs (expired + wrong-host variants for FP testing):
+```bash
+bash scripts/generate-certs.sh
+```
+
+### Production (Let's Encrypt via Certbot)
+
+**Recommended: Cloudflare DNS plugin (fully automated)**
+
+1. Create `letsencrypt/cloudflare.ini`:
+   ```
+   dns_cloudflare_api_token = YOUR_CLOUDFLARE_API_TOKEN
+   ```
+   *(Token needs Zone → DNS → Edit permission for krizznaa.tech)*
+
+2. Issue the cert:
+   ```bash
+   bash scripts/certbot-issue.sh
+   ```
+
+3. Start the stack:
+   ```bash
+   ./scripts/run.sh
+   ```
+
+**Alternative: manual DNS-01 (interactive)**
+
+If no `cloudflare.ini` is present, `certbot-issue.sh` falls back to manual mode — you are prompted to add a `_acme-challenge.krizznaa.tech` TXT record in your DNS dashboard, then press Enter.
+
+### Auto-renewal
+
+Add to crontab (runs at 3 AM daily, reloads nginx automatically):
+```bash
+0 3 * * * /path/to/scripts/certbot-renew.sh >> /var/log/certbot-renew.log 2>&1
+```
+
+`certbot-renew.sh` uses the Cloudflare plugin if `letsencrypt/cloudflare.ini` exists, otherwise falls back to `certbot renew` (works only for non-manual-DNS-01 methods).
+
+### Cert directory layout
+
+```
+letsencrypt/
+└── live/
+    ├── krizznaa.tech/          fullchain.pem + privkey.pem
+    ├── app.krizznaa.tech/      fullchain.pem + privkey.pem
+    ├── api.krizznaa.tech/      fullchain.pem + privkey.pem
+    ├── grafana.krizznaa.tech/  fullchain.pem + privkey.pem
+    ├── jenkins.krizznaa.tech/  fullchain.pem + privkey.pem
+    ├── ... (one directory per subdomain, 19 total)
+proxy/certs/                    self-signed certs (local dev only)
+    ├── ca.crt / ca.key
+    ├── wildcard.crt / wildcard.key
+    ├── expired.crt             FP-29 testing
+    └── wrong-host.crt          FP-29 testing
+```
+
+`run.sh` auto-generates a self-signed cert in `letsencrypt/live/<domain>/` for any subdomain that doesn't already have one. `certbot-issue.sh` skips domains that already have a cert, so re-running it after a partial failure is safe.
 
 ## Subdomain Map
 

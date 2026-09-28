@@ -5,6 +5,28 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$PROJECT_DIR"
 
+DOMAINS=(
+    "krizznaa.tech"
+    "app.krizznaa.tech"
+    "api.krizznaa.tech"
+    "grafana.krizznaa.tech"
+    "jenkins.krizznaa.tech"
+    "fake-grafana.krizznaa.tech"
+    "fake-jenkins.krizznaa.tech"
+    "kibana.krizznaa.tech"
+    "prometheus.krizznaa.tech"
+    "wordpress.krizznaa.tech"
+    "storage.krizznaa.tech"
+    "nextcloud.krizznaa.tech"
+    "angular.krizznaa.tech"
+    "benign.krizznaa.tech"
+    "admin.krizznaa.tech"
+    "api-target.krizznaa.tech"
+    "nginx-old.krizznaa.tech"
+    "nginx-current.krizznaa.tech"
+    "certs.krizznaa.tech"
+)
+
 echo "========================================="
 echo "  Soltrisk Benchmark — Setup & Launch"
 echo "========================================="
@@ -19,20 +41,29 @@ else
 fi
 echo ""
 
-# Step 2: Ensure a TLS cert exists at the LE path nginx expects.
-# A real Let's Encrypt cert can be issued later with: bash scripts/certbot-issue.sh
-LE_CERT="letsencrypt/live/krizznaa.tech/fullchain.pem"
-if [ ! -f "$LE_CERT" ]; then
-    echo "[2/5] No certificate found — generating temporary self-signed cert..."
-    mkdir -p letsencrypt/live/krizznaa.tech
-    openssl req -x509 -newkey rsa:2048 -nodes \
-        -keyout letsencrypt/live/krizznaa.tech/privkey.pem \
-        -out    letsencrypt/live/krizznaa.tech/fullchain.pem \
-        -days 90 -subj "/CN=*.krizznaa.tech" \
-        -addext "subjectAltName=DNS:*.krizznaa.tech,DNS:krizznaa.tech" 2>/dev/null
-    echo "      Temp cert created. Run 'bash scripts/certbot-issue.sh' for a real cert."
+# Step 2: Ensure every subdomain has a TLS cert.
+# Real LE certs can be issued with: bash scripts/certbot-issue.sh
+echo "[2/5] Checking TLS certificates..."
+MISSING=()
+for domain in "${DOMAINS[@]}"; do
+    if [ ! -f "letsencrypt/live/$domain/fullchain.pem" ]; then
+        MISSING+=("$domain")
+    fi
+done
+
+if [ "${#MISSING[@]}" -gt 0 ]; then
+    echo "      Generating self-signed certs for ${#MISSING[@]} domain(s)..."
+    for domain in "${MISSING[@]}"; do
+        mkdir -p "letsencrypt/live/$domain"
+        openssl req -x509 -newkey rsa:2048 -nodes \
+            -keyout "letsencrypt/live/$domain/privkey.pem" \
+            -out    "letsencrypt/live/$domain/fullchain.pem" \
+            -days 90 -subj "/CN=$domain" \
+            -addext "subjectAltName=DNS:$domain" 2>/dev/null
+    done
+    echo "      Self-signed certs created. Run 'bash scripts/certbot-issue.sh' for real certs."
 else
-    echo "[2/5] TLS certificate already present."
+    echo "      All ${#DOMAINS[@]} domain certs present."
 fi
 echo ""
 
@@ -53,7 +84,7 @@ echo ""
 
 # Step 5: Wait for health
 echo "[5/5] Waiting for services to be healthy..."
-SERVICES=(postgres backend proxy)
+SERVICES=(postgres backend nginx)
 MAX_WAIT=120
 ELAPSED=0
 
