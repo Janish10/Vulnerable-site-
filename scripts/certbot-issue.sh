@@ -1,21 +1,18 @@
 #!/usr/bin/env bash
-# Issue individual Let's Encrypt certs for every subdomain via DNS-01 challenge.
+# Issue individual Let's Encrypt certs for every subdomain via manual DNS-01 challenge.
 # Each subdomain gets its own certificate stored under letsencrypt/live/<domain>/.
 #
-# Two modes:
-#   Automatic (recommended): place Cloudflare API credentials at
-#     letsencrypt/cloudflare.ini  (see below) then run this script.
-#   Manual: no credentials file — you are prompted to add a DNS TXT record
-#     for each domain individually (19 interactions total).
+# When prompted for each domain, add a TXT record in your .tech DNS panel:
+#   Name:  _acme-challenge.<subdomain>
+#   Value: <token shown by certbot>
+# Wait ~60s for DNS to propagate, then press Enter to continue.
 #
-# cloudflare.ini format:
-#   dns_cloudflare_api_token = YOUR_CF_API_TOKEN
+# Already-issued certs are skipped, so re-running after a partial failure is safe.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 LE_DIR="$PROJECT_DIR/letsencrypt"
-CF_CREDS="$LE_DIR/cloudflare.ini"
 
 DOMAINS=(
     "krizznaa.tech"
@@ -43,22 +40,12 @@ mkdir -p "$LE_DIR"
 
 echo "========================================="
 echo "  Certbot — Individual Certs for krizznaa.tech"
+echo "  ${#DOMAINS[@]} domains, manual DNS-01 challenge"
 echo "========================================="
-echo "  Issuing ${#DOMAINS[@]} certificates (one per subdomain)"
 echo ""
-
-if [ ! -f "$CF_CREDS" ]; then
-    echo "WARNING: No letsencrypt/cloudflare.ini found."
-    echo "  Falling back to manual DNS-01 — you will be prompted"
-    echo "  to add a TXT record for each of the ${#DOMAINS[@]} domains."
-    echo ""
-    echo "  For fully automated issuance, create letsencrypt/cloudflare.ini:"
-    echo "    dns_cloudflare_api_token = YOUR_CF_API_TOKEN"
-    echo ""
-    read -r -p "Continue with manual mode? [y/N] " confirm
-    [[ "$confirm" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 1; }
-    echo ""
-fi
+echo "For each domain you will be asked to add a TXT record in"
+echo "your .tech DNS panel, then press Enter to continue."
+echo ""
 
 ISSUED=0
 SKIPPED=0
@@ -73,39 +60,22 @@ for domain in "${DOMAINS[@]}"; do
         continue
     fi
 
-    echo "  [issuing] $domain ..."
+    echo ""
+    echo "  [$((ISSUED + SKIPPED + FAILED + 1))/${#DOMAINS[@]}] Issuing cert for: $domain"
+    echo "  Add TXT record -> Name: _acme-challenge.$domain"
+    echo ""
 
-    if [ -f "$CF_CREDS" ]; then
-        docker run --rm \
-          -v "$LE_DIR:/etc/letsencrypt" \
-          certbot/dns-cloudflare certonly \
-            --dns-cloudflare \
-            --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini \
-            --dns-cloudflare-propagation-seconds 60 \
-            --email admin@krizznaa.tech \
-            --agree-tos \
-            --no-eff-email \
-            --non-interactive \
-            -d "$domain" \
-          && ISSUED=$((ISSUED + 1)) \
-          || { echo "  [FAILED] $domain"; FAILED=$((FAILED + 1)); }
-    else
-        echo ""
-        echo "  === Manual DNS-01 for: $domain ==="
-        echo "  Add TXT record: _acme-challenge.$domain"
-        echo ""
-        docker run --rm -it \
-          -v "$LE_DIR:/etc/letsencrypt" \
-          certbot/certbot certonly \
-            --manual \
-            --preferred-challenges dns \
-            --email admin@krizznaa.tech \
-            --agree-tos \
-            --no-eff-email \
-            -d "$domain" \
-          && ISSUED=$((ISSUED + 1)) \
-          || { echo "  [FAILED] $domain"; FAILED=$((FAILED + 1)); }
-    fi
+    docker run --rm -it \
+      -v "$LE_DIR:/etc/letsencrypt" \
+      certbot/certbot certonly \
+        --manual \
+        --preferred-challenges dns \
+        --email admin@krizznaa.tech \
+        --agree-tos \
+        --no-eff-email \
+        -d "$domain" \
+      && ISSUED=$((ISSUED + 1)) \
+      || { echo "  [FAILED] $domain"; FAILED=$((FAILED + 1)); }
 done
 
 echo ""
@@ -117,5 +87,5 @@ if [ "$FAILED" -gt 0 ]; then
     echo "Re-run this script to retry failed domains (existing certs are skipped)."
     echo ""
 fi
-echo "Add this to your crontab for auto-renewal (runs at 3am daily):"
+echo "Add this to your crontab for renewal reminders (runs at 3am daily):"
 echo "  0 3 * * * $SCRIPT_DIR/certbot-renew.sh >> /var/log/certbot-renew.log 2>&1"

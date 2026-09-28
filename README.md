@@ -63,36 +63,27 @@ bash scripts/generate-certs.sh
 
 ### Production (Let's Encrypt via Certbot)
 
-**Recommended: Cloudflare DNS plugin (fully automated)**
+`certbot-issue.sh` uses the manual DNS-01 challenge. For each domain you are prompted to add a TXT record in your `.tech` DNS panel, wait ~60s for propagation, then press Enter.
 
-1. Create `letsencrypt/cloudflare.ini`:
-   ```
-   dns_cloudflare_api_token = YOUR_CLOUDFLARE_API_TOKEN
-   ```
-   *(Token needs Zone → DNS → Edit permission for krizznaa.tech)*
-
-2. Issue the cert:
+1. Issue certs for all 19 subdomains:
    ```bash
    bash scripts/certbot-issue.sh
    ```
+   Already-issued certs are skipped, so re-running after a partial failure is safe.
 
-3. Start the stack:
+2. Start the stack:
    ```bash
    ./scripts/run.sh
    ```
 
-**Alternative: manual DNS-01 (interactive)**
-
-If no `cloudflare.ini` is present, `certbot-issue.sh` falls back to manual mode — you are prompted to add a `_acme-challenge.krizznaa.tech` TXT record in your DNS dashboard, then press Enter.
-
 ### Auto-renewal
 
-Add to crontab (runs at 3 AM daily, reloads nginx automatically):
+Add to crontab (runs at 3 AM daily):
 ```bash
 0 3 * * * /path/to/scripts/certbot-renew.sh >> /var/log/certbot-renew.log 2>&1
 ```
 
-`certbot-renew.sh` uses the Cloudflare plugin if `letsencrypt/cloudflare.ini` exists, otherwise falls back to `certbot renew` (works only for non-manual-DNS-01 methods).
+Because the `.tech` DNS provider has no certbot plugin, renewal uses the same manual DNS-01 flow — you will be prompted to update TXT records for any cert expiring within 30 days.
 
 ### Cert directory layout
 
