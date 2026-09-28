@@ -1,4 +1,4 @@
-# Soltrisk ASM Benchmark
+
 
 A standalone, intentionally vulnerable web application and attack-surface-management (ASM) benchmark for authorized security testing of AI pentesters.
 
