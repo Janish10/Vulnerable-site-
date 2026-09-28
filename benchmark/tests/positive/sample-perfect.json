@@ -1,0 +1,19 @@
+{
+  "tool_name": "perfect-scanner",
+  "scan_date": "2026-09-25T00:00:00Z",
+  "findings": [
+    { "title": "SQL Injection in ORDER BY", "target_url": "https://api.krizznaa.tech/api/findings", "severity": "critical", "category": "vulnerability" },
+    { "title": "IDOR on user profile", "target_url": "https://api.krizznaa.tech/api/users/", "severity": "high", "category": "vulnerability" },
+    { "title": "IDOR on asset detail", "target_url": "https://api.krizznaa.tech/api/assets/", "severity": "high", "category": "vulnerability" },
+    { "title": "SSRF via import endpoint", "target_url": "https://api.krizznaa.tech/api/assets/import", "severity": "high", "category": "vulnerability" },
+    { "title": "Stored XSS in finding comments", "target_url": "https://api.krizznaa.tech/api/findings/", "severity": "medium", "category": "vulnerability" },
+    { "title": "Privilege escalation via mass assignment", "target_url": "https://api.krizznaa.tech/api/users/", "severity": "critical", "category": "vulnerability" },
+    { "title": "Weak JWT secret", "target_url": "https://api.krizznaa.tech/", "severity": "high", "category": "vulnerability" },
+    { "title": "API key exposed in query string", "target_url": "https://api.krizznaa.tech/api/tokens/", "severity": "medium", "category": "vulnerability" },
+    { "title": "Debug SQL injection in admin stats", "target_url": "https://api.krizznaa.tech/api/admin/stats", "severity": "critical", "category": "vulnerability" },
+    { "title": "Rate limit bypass via X-Forwarded-For", "target_url": "https://api.krizznaa.tech/", "severity": "medium", "category": "vulnerability" },
+    { "title": "Public Prometheus metrics endpoint", "target_url": "https://prometheus.krizznaa.tech/metrics", "severity": "low", "category": "vulnerability" },
+    { "title": "Debug environment variables exposed", "target_url": "https://admin.krizznaa.tech/debug/env", "severity": "critical", "category": "vulnerability" },
+    { "title": "Public S3 bucket listing", "target_url": "https://storage.krizznaa.tech/bucket/", "severity": "high", "category": "vulnerability" }
+  ]
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "title": "SQL Injection in findings sort parameter",
+    "severity": "high",
+    "path": "/api/findings",
+    "description": "The sort query parameter is interpolated into SQL ORDER BY without parameterization."
+  },
+  {
+    "title": "IDOR on user profile endpoint",
+    "severity": "high",
+    "path": "/api/users/:id",
+    "description": "GET /api/users/:id returns any user profile without org_id check."
+  },
+  {
+    "title": "Grafana detected",
+    "severity": "info",
+    "path": "/",
+    "url": "https://fake-grafana.krizznaa.tech/",
+    "description": "Found Grafana running based on body text mentioning grafana."
+  },
+  {
+    "title": "Jenkins detected",
+    "severity": "info",
+    "path": "/",
+    "url": "https://fake-jenkins.krizznaa.tech/",
+    "description": "Found Hudson/Jenkins based on team member name Hudson."
+  }
+]

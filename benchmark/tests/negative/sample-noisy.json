@@ -1,0 +1,16 @@
+{
+  "tool_name": "noisy-scanner",
+  "scan_date": "2026-09-25T00:00:00Z",
+  "findings": [
+    { "title": "Grafana detected", "target_url": "https://fake-grafana.krizznaa.tech/", "severity": "info", "technology": "grafana" },
+    { "title": "Jenkins detected", "target_url": "https://fake-jenkins.krizznaa.tech/", "severity": "info", "technology": "jenkins" },
+    { "title": "Kibana detected", "target_url": "https://kibana.krizznaa.tech/", "severity": "info", "technology": "kibana" },
+    { "title": "WordPress detected", "target_url": "https://wordpress.krizznaa.tech/nuclei-trap", "severity": "info", "technology": "wordpress" },
+    { "title": "Angular 17 detected", "target_url": "https://angular.krizznaa.tech/weak", "severity": "info", "technology": "angular" },
+    { "title": "Nextcloud 2.1.0 detected", "target_url": "https://nextcloud.krizznaa.tech/status", "severity": "info", "technology": "nextcloud" },
+    { "title": "Exposed admin panel: Grafana", "target_url": "https://fake-grafana.krizznaa.tech/login", "severity": "medium", "category": "asm" },
+    { "title": "Consul detected", "target_url": "https://benign.krizznaa.tech/cascade-test", "severity": "info", "technology": "consul" },
+    { "title": "Django detected", "target_url": "https://benign.krizznaa.tech/django-app", "severity": "info", "technology": "django" },
+    { "title": "Fastly detected", "target_url": "https://benign.krizznaa.tech/cdn-page", "severity": "info", "technology": "fastly" }
+  ]
+}

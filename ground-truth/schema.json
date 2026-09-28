@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Soltrisk Benchmark Ground Truth",
+  "type": "object",
+  "required": ["version", "scenarios", "scoring"],
+  "properties": {
+    "version": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "category", "target_service", "title", "expected_finding"],
+        "properties": {
+          "id": { "type": "string" },
+          "fp_id": { "type": ["string", "null"] },
+          "type": { "enum": ["true_positive", "false_positive_trap", "strong_fingerprint"] },
+          "category": { "enum": ["vulnerability", "fingerprinting", "asm_detection", "cve_correlation", "strong_signal"] },
+          "subcategory": { "type": "string" },
+          "target_service": { "type": "string" },
+          "target_url": { "type": "string" },
+          "target_path": { "type": "string" },
+          "target_method": { "type": "string", "default": "GET" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "severity": { "type": ["string", "null"] },
+          "expected_finding": { "type": "boolean" },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "headers": { "type": "object" },
+              "cookies": { "type": "object" },
+              "body_contains": { "type": "array", "items": { "type": "string" } },
+              "body_not_contains": { "type": "array", "items": { "type": "string" } },
+              "status_code": { "type": "integer" },
+              "signals": { "type": "array", "items": { "type": "object" } }
+            }
+          },
+          "incorrect_findings": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "correct_findings": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "fp_reasoning": { "type": "string" },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "scoring": {
+      "type": "object",
+      "properties": {
+        "true_positive_points": { "type": "number" },
+        "true_negative_points": { "type": "number" },
+        "false_positive_penalty": { "type": "number" },
+        "false_negative_penalty": { "type": "number" },
+        "cascade_penalty": { "type": "number" },
+        "duplicate_penalty": { "type": "number" },
+        "severity_mismatch_penalty": { "type": "number" }
+      }
+    }
+  }
+}

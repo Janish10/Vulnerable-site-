@@ -1,0 +1,267 @@
+version: "3.9"
+
+services:
+  # ─── Core Platform ────────────────────────────────────────────────
+  nginx:
+    build: ./proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - frontend-net
+      - target-net
+    depends_on:
+      frontend:
+        condition: service_started
+      backend:
+        condition: service_healthy
+      grafana:
+        condition: service_started
+      jenkins:
+        condition: service_started
+      grafana-like:
+        condition: service_started
+      jenkins-like:
+        condition: service_started
+      kibana-like:
+        condition: service_started
+      prometheus-like:
+        condition: service_started
+      wordpress-like:
+        condition: service_started
+      storage-like:
+        condition: service_started
+      nextcloud-like:
+        condition: service_started
+      angular-app:
+        condition: service_started
+      intentionally-benign:
+        condition: service_started
+      admin-console:
+        condition: service_started
+      api-target:
+        condition: service_started
+      nginx-targets:
+        condition: service_started
+      certificate-targets:
+        condition: service_started
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    expose:
+      - "5173"
+    networks:
+      - frontend-net
+    environment:
+      - VITE_API_URL=http://api.krizznaa.tech
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    expose:
+      - "3000"
+    networks:
+      - frontend-net
+      - backend-net
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgres://${POSTGRES_USER:-soltrisk}:${POSTGRES_PASSWORD:-soltrisk_bench_2024}@postgres:5432/${POSTGRES_DB:-soltrisk}
+      - JWT_SECRET=${JWT_SECRET:-soltrisk-secret-key-2024}
+      - JWT_EXPIRES_IN=15m
+      - REFRESH_TOKEN_EXPIRES_IN=7d
+      - CORS_ORIGIN=http://app.krizznaa.tech,https://app.krizznaa.tech
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health',r=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    expose:
+      - "5432"
+    networks:
+      - backend-net
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-soltrisk}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-soltrisk_bench_2024}
+      - POSTGRES_DB=${POSTGRES_DB:-soltrisk}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-soltrisk}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # ─── Real Software Instances ──────────────────────────────────────
+  grafana:
+    image: grafana/grafana-oss:10.2.0
+    expose:
+      - "3000"
+    networks:
+      - target-net
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=true
+      - GF_SERVER_ROOT_URL=http://grafana.krizznaa.tech
+      - GF_SERVER_HTTP_PORT=3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    expose:
+      - "8080"
+    networks:
+      - target-net
+    environment:
+      - JENKINS_OPTS=--prefix=/
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false -Dhudson.security.csrf.DefaultCrumbIssuer.EXCLUDE_SESSION_ID=true
+    volumes:
+      - jenkins-data:/var/jenkins_home
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/login"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
+  # ─── Mock Target Services ────────────────────────────────────────
+  grafana-like:
+    build: ./targets/grafana-like
+    expose:
+      - "3001"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  jenkins-like:
+    build: ./targets/jenkins-like
+    expose:
+      - "3002"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  kibana-like:
+    build: ./targets/kibana-like
+    expose:
+      - "3003"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  prometheus-like:
+    build: ./targets/prometheus-like
+    expose:
+      - "3004"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  wordpress-like:
+    build: ./targets/wordpress-like
+    expose:
+      - "3005"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  storage-like:
+    build: ./targets/storage-like
+    expose:
+      - "3006"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  nextcloud-like:
+    build: ./targets/nextcloud-like
+    expose:
+      - "3007"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  angular-app:
+    build: ./targets/angular-app
+    expose:
+      - "3008"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  intentionally-benign:
+    build: ./targets/intentionally-benign
+    expose:
+      - "3009"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  admin-console:
+    build: ./targets/admin-console
+    expose:
+      - "3010"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  api-target:
+    build: ./targets/api-target
+    expose:
+      - "3011"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  nginx-targets:
+    build: ./targets/nginx-targets
+    expose:
+      - "3012"
+      - "3013"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+  certificate-targets:
+    build: ./targets/certificate-targets
+    expose:
+      - "3014"
+      - "3015"
+      - "3016"
+    networks:
+      - target-net
+    restart: unless-stopped
+
+networks:
+  frontend-net:
+    driver: bridge
+  backend-net:
+    driver: bridge
+  target-net:
+    driver: bridge
+
+volumes:
+  pgdata:
+  grafana-data:
+  jenkins-data:
