@@ -2,7 +2,7 @@
 
 A standalone, intentionally vulnerable web application and attack-surface-management (ASM) benchmark for authorized security testing of AI pentesters.
 
-**This is NOT the real Soltrisk product.** It is a synthetic test harness with newly written code and fake data, designed to evaluate how well AI security tools distinguish genuine vulnerabilities from false positives.
+ It is a synthetic test harness with newly written code and fake data, designed to evaluate how well AI security tools distinguish genuine vulnerabilities from false positives.
 
 ## Architecture
 
