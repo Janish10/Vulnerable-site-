@@ -11,14 +11,14 @@ INSERT INTO orgs (id, name, slug, plan) VALUES
 
 -- ============================================================
 -- Users
--- All test passwords use the same bcrypt hash for simplicity.
+-- Passwords match README credentials (see Default Credentials table).
 -- admin@soltrisk.local has mfa_secret stored in PLAINTEXT (intentional vuln).
 -- ============================================================
 INSERT INTO users (id, org_id, email, password_hash, role, first_name, last_name, mfa_secret, is_active) VALUES
     ('10000000-0000-0000-0000-000000000001',
      '00000000-0000-0000-0000-000000000001',
      'admin@soltrisk.local',
-     '$2b$10$rQEY1f.rPOx3GYv6bLCNre4R4yFSbKmnXKOFPfcd/BbMqWMxrGMi2',
+     '$2b$10$ZT3Dy1ojPf5zVl2f0tG8ae/odi5OGJsZ7QdiuiDUnmJwW8GTvitai',
      'admin', 'Alice', 'Chen',
      'JBSWY3DPEHPK3PXP',  -- INTENTIONAL: plaintext TOTP secret
      true),
@@ -26,35 +26,35 @@ INSERT INTO users (id, org_id, email, password_hash, role, first_name, last_name
     ('10000000-0000-0000-0000-000000000002',
      '00000000-0000-0000-0000-000000000001',
      'analyst@soltrisk.local',
-     '$2b$10$rQEY1f.rPOx3GYv6bLCNre4R4yFSbKmnXKOFPfcd/BbMqWMxrGMi2',
+     '$2b$10$QZKlWmJvjvTpEsuRJCrNG.n66J0JLjksQTrCxEU4T25hioJWS4U8O',
      'analyst', 'Bob', 'Rivera',
      NULL, true),
 
     ('10000000-0000-0000-0000-000000000003',
      '00000000-0000-0000-0000-000000000001',
      'viewer@soltrisk.local',
-     '$2b$10$rQEY1f.rPOx3GYv6bLCNre4R4yFSbKmnXKOFPfcd/BbMqWMxrGMi2',
+     '$2b$10$rDzwyJDf25FNAwEJO4na2.sjmH/r1mGHllUomuYch0P3aScX5ak9i',
      'viewer', 'Carol', 'Nguyen',
      NULL, true),
 
     ('10000000-0000-0000-0000-000000000004',
      '00000000-0000-0000-0000-000000000002',
      'admin@acme.local',
-     '$2b$10$rQEY1f.rPOx3GYv6bLCNre4R4yFSbKmnXKOFPfcd/BbMqWMxrGMi2',
+     '$2b$10$YE38GpNBjricwJSsA1L9xOo7yCZJbkGdjemMxiszFTeB/yOQRYax2',
      'admin', 'David', 'Park',
      NULL, true),
 
     ('10000000-0000-0000-0000-000000000005',
      '00000000-0000-0000-0000-000000000002',
      'user@acme.local',
-     '$2b$10$rQEY1f.rPOx3GYv6bLCNre4R4yFSbKmnXKOFPfcd/BbMqWMxrGMi2',
+     '$2b$10$C2yzy5WycV733prKJKZ58.IJyBQitdBJ.FvXf7HnVY6KG.E.DUAzq',
      'viewer', 'Eva', 'Santos',
      NULL, true),
 
     ('10000000-0000-0000-0000-000000000006',
      '00000000-0000-0000-0000-000000000003',
      'admin@umbrella.local',
-     '$2b$10$rQEY1f.rPOx3GYv6bLCNre4R4yFSbKmnXKOFPfcd/BbMqWMxrGMi2',
+     '$2b$10$1AgBb3UTMEKD/d2vN44M/uUmxdB5SIG8h21krxQYzZCSg7m25QhqK',
      'admin', 'Frank', 'Weber',
      NULL, true);
 

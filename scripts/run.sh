@@ -19,12 +19,20 @@ else
 fi
 echo ""
 
-# Step 2: Generate TLS certs if missing
-if [ ! -f "proxy/certs/wildcard.crt" ]; then
-    echo "[2/5] Generating TLS certificates..."
-    bash scripts/generate-certs.sh
+# Step 2: Ensure a TLS cert exists at the LE path nginx expects.
+# A real Let's Encrypt cert can be issued later with: bash scripts/certbot-issue.sh
+LE_CERT="letsencrypt/live/krizznaa.tech/fullchain.pem"
+if [ ! -f "$LE_CERT" ]; then
+    echo "[2/5] No certificate found — generating temporary self-signed cert..."
+    mkdir -p letsencrypt/live/krizznaa.tech
+    openssl req -x509 -newkey rsa:2048 -nodes \
+        -keyout letsencrypt/live/krizznaa.tech/privkey.pem \
+        -out    letsencrypt/live/krizznaa.tech/fullchain.pem \
+        -days 90 -subj "/CN=*.krizznaa.tech" \
+        -addext "subjectAltName=DNS:*.krizznaa.tech,DNS:krizznaa.tech" 2>/dev/null
+    echo "      Temp cert created. Run 'bash scripts/certbot-issue.sh' for a real cert."
 else
-    echo "[2/5] TLS certificates already present."
+    echo "[2/5] TLS certificate already present."
 fi
 echo ""
 
