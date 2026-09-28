@@ -6,7 +6,7 @@ A standalone, intentionally vulnerable web application and attack-surface-manage
 
 ## Architecture
 
-- **20 Docker services** behind an nginx reverse proxy
+- **20 Docker services** behind an nginx 1.25-alpine reverse proxy
 - **19 subdomains** under `*.krizznaa.tech`
 - **Real Grafana** (10.2.0) and **real Jenkins** (LTS) alongside mock services
 - **PostgreSQL 16** with multi-tenant schema and intentional IDOR vulnerabilities
@@ -124,8 +124,8 @@ proxy/certs/                    self-signed certs (local dev only)
 | `admin.krizznaa.tech` | SPA admin console | FP trap + TP |
 | `api-target.krizznaa.tech` | API target service | Mixed |
 | `benign.krizznaa.tech` | Intentionally benign | FP trap + TP |
-| `nginx-old.krizznaa.tech` | nginx 1.2.9 | TP (deprecated) |
-| `nginx-current.krizznaa.tech` | nginx 1.20.2 | FP trap |
+| `nginx-old.krizznaa.tech` | Advertises nginx/1.2.9 (mock) | TP (deprecated) |
+| `nginx-current.krizznaa.tech` | Advertises nginx/1.20.2 (mock) | FP trap |
 | `certs.krizznaa.tech` | Certificate testing | FP trap + TP |
 | `krizznaa.tech` | Landing page | Neutral |
 
